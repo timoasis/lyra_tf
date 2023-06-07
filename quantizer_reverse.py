@@ -1,6 +1,7 @@
 import tensorflow as tf
 import numpy as np
 
+NUM_QUANTIZERS = 16
 
 class QuantizerBlock(tf.keras.layers.Layer):
     def __init__(self, codebook, *args, **kwargs):
@@ -41,13 +42,13 @@ class Quantizer(tf.keras.models.Model):
             embds.append(embd)
 
         res = tf.argmax(embds, -1, output_type=tf.int32)
-        res = tf.concat([res, tf.ones([46 - 15, 1], dtype=tf.int32) * -1], axis=0)
+        res = tf.concat([res, tf.ones([46 - NUM_QUANTIZERS, 1], dtype=tf.int32) * -1], axis=0)
         return {'output_0': tf.reshape(res, (46, 1, 1)), 'output_1': 4}
 
 
 def load_model():
     quan = Quantizer(tuple(
-        np.load(f'./weights/q{i}.npy') for i in range(1, 16))
+        np.load(f'./weights/q{i}.npy') for i in range(1, NUM_QUANTIZERS + 1))
     )
 
     tf.saved_model.save(quan,
